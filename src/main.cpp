@@ -18,6 +18,10 @@ void setup() {
 }
 
 void loop() {
+    if (millis() % 8192 == 0 && !sensors->hasBothSensors())
+    {
+        sensors->init();
+    }
     sensors->maintain();
     webServer->maintain(sensors);
 }

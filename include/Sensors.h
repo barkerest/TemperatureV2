@@ -20,15 +20,29 @@ private:
     uint16_t a = 0;
     uint16_t b = 0;
 
+
 public:
     Sensors(int channelA, int channelB);
 
+    void init();
     void maintain();
 
     // return the temperature in tenths of a degree Celsius (eg - 235 = 23.5C)
     uint16_t getTemperatureA() { return a; }
 
     uint16_t getTemperatureB() { return b; }
+
+    bool hasSensorA() {
+        return deviceChannel[0] != nullptr;
+    }
+
+    bool hasSensorB() {
+        return deviceChannel[1] != nullptr;
+    }
+
+    bool hasBothSensors() {
+        return deviceChannel[0] != nullptr && deviceChannel[1] != nullptr;
+    }
 };
 
 

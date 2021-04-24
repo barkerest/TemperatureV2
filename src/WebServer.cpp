@@ -98,9 +98,18 @@ void WebServer::maintain(Sensors* sensors) {
 
                 // return temperatures.
                 client.print("T1: ");
-                client.println(Formatter::format_decimal(sensors->getTemperatureA(),1,'C'));
+                if (sensors->hasSensorA()) {
+                    client.println(Formatter::format_decimal(sensors->getTemperatureA(), 1, 'C'));
+                }
+                else {
+                    client.println("ERR");
+                }
                 client.print("T2: ");
-                client.println(Formatter::format_decimal(sensors->getTemperatureB(),1,'C'));
+                if (sensors->hasSensorB()) {
+                    client.println(Formatter::format_decimal(sensors->getTemperatureB(), 1, 'C'));
+                }else {
+                    client.println("ERR");
+                }
             }
             if (req == 2) {
                 // return MAC & version.

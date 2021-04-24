@@ -4,16 +4,13 @@
 
 #include "Sensors.h"
 
+void Sensors::init() {
+    // already fully initialized.
+    if (hasBothSensors()) return;
 
-Sensors::Sensors(int channelA, int channelB) {
-    wire[0] = new OneWire(channelA);
-    wire[1] = new OneWire(channelB);
-    channel[0] = new DallasTemperature(wire[0]);
-    channel[0]->begin();
-    channel[1] = new DallasTemperature(wire[1]);
-    channel[1]->begin();
     uint8_t count1 = channel[0]->getDeviceCount();
     uint8_t count2 = channel[1]->getDeviceCount();
+
     if (count1 < 1) {
         if (count2 < 1) {
             DEBUG_LOG("WARN: Did not locate any sensors.\r\n");
@@ -52,6 +49,16 @@ Sensors::Sensors(int channelA, int channelB) {
 
     lastMS = millis();
     pollDelay = 2000;
+}
+
+Sensors::Sensors(int channelA, int channelB) {
+    wire[0] = new OneWire(channelA);
+    wire[1] = new OneWire(channelB);
+    channel[0] = new DallasTemperature(wire[0]);
+    channel[0]->begin();
+    channel[1] = new DallasTemperature(wire[1]);
+    channel[1]->begin();
+    init();
 }
 
 void Sensors::maintain() {
@@ -96,3 +103,4 @@ void Sensors::maintain() {
 
     lastMS = ms;
 }
+

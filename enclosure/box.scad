@@ -31,6 +31,10 @@ ethernet_height = 13.5;
 usb_width = 8.0;
 usb_height = 3.0;
 
+usb_indent_height = 6.5;
+usb_indent_width = 11;
+usb_indent_depth = 0.5;
+
 // sensor lead thickness.
 lead_thickness = 3.75;
 lead_from_back = 15.9;
@@ -71,7 +75,7 @@ top_height = box_height - bottom_height;
 vent_style = "diamond"; // "circle" (default), "square", or "diamond"
 
 // vent dimensions
-vent_hole_r = 1;
+vent_hole_r = 1.3;
 vent_hole_gap = 4;
 
 echo(box_width=box_width, box_length=box_length, box_height=box_height);
@@ -137,6 +141,24 @@ module vents(rx, ry, rw, rh) {
     }
 }
 
+module lead_cutout() {
+    // the lead round hole.
+    translate([0, lead_thickness / 2, lead_thickness / 2])
+        rotate([0, 90, 0])    
+            cylinder(r=lead_thickness / 2, h = wall + attach * 2);
+    // make sure we have a smooth cutout goin up.
+    translate([0, 0, lead_thickness / 2])
+        cube([wall + attach * 2, lead_thickness, lead_thickness * 2]);
+}
+
+module usb_cutout() {
+    union() {
+        cube([usb_width, wall + (attach * 2), usb_height + attach]);
+        translate([-(usb_indent_width - usb_width) / 2, wall - usb_indent_depth, -(usb_indent_height - usb_height) / 2])
+            cube([usb_indent_width, usb_indent_depth + attach * 2, usb_indent_height]);
+    }
+}
+
 module box_bottom(){
     translate([mount_tab, 0, 0]) {
         union(){
@@ -160,32 +182,24 @@ module box_bottom(){
                             cube([mount_tab / 2 + attach, mount_tab, bottom_thickness]);
                     }
                 }
+                
                 // internal cavity.
                 translate([wall, wall, bottom_thickness])
                     cube([box_width - walls, box_length - walls, bottom_height]);
+                
                 // ethernet port.
                 translate([wall + ((feather_width - ethernet_width) / 2), -attach, bottom_thickness])
                     cube([ethernet_width, wall + (attach * 2), ethernet_height]);
+                
                 // usb port.
                 translate([wall + ((feather_width - usb_width) / 2), box_length - wall - attach, bottom_height - usb_height])
-                    cube([usb_width, wall + (attach * 2), usb_height + attach]);
+                    usb_cutout();
+                
                 // wire leads.
-                translate([-attach, box_length - wall - lead_from_back - lead_thickness, bottom_height - lead_thickness]) {
-                    translate([0, lead_thickness / 2, lead_thickness / 2])
-                        rotate([0, 90, 0])    
-                            cylinder(r=lead_thickness / 2, h = wall + attach * 2);
-                    // make sure we have a smooth cutout goin up.
-                    translate([0, 0, lead_thickness / 2])
-                        cube([wall + attach * 2, lead_thickness, lead_thickness * 2]);
-                }
-                translate([box_width - wall - attach, box_length - wall - lead_from_back - lead_thickness, bottom_height - lead_thickness]) {
-                    translate([0, lead_thickness / 2, lead_thickness / 2])
-                        rotate([0, 90, 0])    
-                            cylinder(r=lead_thickness / 2, h = wall + attach * 2);
-                    // make sure we have a smooth cutout goin up.
-                    translate([0, 0, lead_thickness / 2])
-                        cube([wall + attach * 2, lead_thickness, lead_thickness * 2]);
-                }
+                translate([-attach, box_length - wall - lead_from_back - lead_thickness, bottom_height - lead_thickness])
+                    lead_cutout();
+                translate([box_width - wall - attach, box_length - wall - lead_from_back - lead_thickness, bottom_height - lead_thickness])
+                    lead_cutout();
                 
                 // vents
                 translate([wall, 0, 0])
@@ -194,6 +208,11 @@ module box_bottom(){
                 translate([box_width, 0, 0])
                     rotate([0,-90,0])
                         vents(bottom_thickness, walls, bottom_height - wall_step - bottom_thickness - walls, box_length - wall * 5);
+                    
+                translate([0, box_length, 0])    
+                rotate([90, 0, 0])
+                    vents(walls, bottom_thickness, feather_width - walls, bottom_height - wall_step - bottom_thickness - walls);
+                
                 // mount holes.
                 translate([-mount_tab / 2, box_length / 2, -attach])
                 {
@@ -212,28 +231,32 @@ module box_bottom(){
 }
 
 module box_top() {
-    difference(){
-        cube([box_width, box_length, top_height + wall_step]);
-        translate([wall, wall, wall])
-            cube([box_width - walls, box_length - walls, top_height + wall_step]);
-        translate([half_wall, half_wall, top_height])
-            cube([box_width - wall, box_length - wall, wall_step + attach]);
-        // lead cutouts
-        translate([-attach, box_length - wall - lead_from_back - lead_thickness, top_height]) {
-            translate([0, lead_thickness / 2, lead_thickness / 2])
-                rotate([0, 90, 0])    
-                    cylinder(r=lead_thickness / 2, h = wall + attach * 2);
-            // make sure we have a smooth cutout goin up.
-            translate([0, 0, lead_thickness / 2])
-                cube([wall + attach * 2, lead_thickness, lead_thickness * 2]);
+    union() {
+        difference(){
+            cube([box_width, box_length, top_height + wall_step]);
+            translate([wall, wall, wall])
+                cube([box_width - walls, box_length - walls, top_height + wall_step]);
+            translate([half_wall, half_wall, top_height])
+                cube([box_width - wall, box_length - wall, wall_step + attach]);
+            // lead cutouts
+            translate([-attach, box_length - wall - lead_from_back - lead_thickness, top_height]) {
+                lead_cutout();
+            }
+            translate([box_width - wall - attach, box_length - wall - lead_from_back - lead_thickness, top_height]) {
+                lead_cutout();
+            }
+            // usb port.
+            translate([wall + ((feather_width - usb_width) / 2), box_length - wall - attach, top_height])
+            usb_cutout();
         }
-        translate([box_width - wall - attach, box_length - wall - lead_from_back - lead_thickness, top_height]) {
-            translate([0, lead_thickness / 2, lead_thickness / 2])
-                rotate([0, 90, 0])    
-                    cylinder(r=lead_thickness / 2, h = wall + attach * 2);
-            // make sure we have a smooth cutout goin up.
-            translate([0, 0, lead_thickness / 2])
-                cube([wall + attach * 2, lead_thickness, lead_thickness * 2]);
+        translate([box_width/2, box_length - wall - feather_length, wall - attach])
+        {
+            translate([0, feather_length / 4, 0])
+                cylinder(r=2, h=top_gap);
+            translate([0, feather_length / 2, 0])
+                cylinder(r=2, h=top_gap);
+            translate([0, feather_length / 4 * 3, 0])
+                cylinder(r=2, h=top_gap);
         }
     }
 }
