@@ -261,7 +261,17 @@ module box_top() {
     }
 }
 
-translate([-box_width - mount_tab * 2 - wall, 0, 0])
+left_set = -box_width - mount_tab * 2 - 5;
+right_set = 5;
+front_set = -box_length - 8;
+back_set = 8;
+
+translate([left_set, front_set, 0])
     box_bottom();
-translate([wall, 0, 0])
+translate([right_set + mount_tab, front_set, 0])
     box_top();
+
+//translate([left_set + mount_tab, back_set, 0])
+//    box_top();
+//translate([right_set, back_set, 0])
+//    box_bottom();
